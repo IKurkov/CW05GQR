@@ -6,6 +6,7 @@
 #include "fort.hpp"
 #include "int.h"
 #include "gqr.h"
+#include "test_functions.h"
 
 const char *WeightStr = "|x - 0.5|";
 double Weight( double x )
@@ -13,26 +14,21 @@ double Weight( double x )
   return fabs(x - 0.5);
 }
 
-const char *Variant7Str = "sin x";
-double Variant7( double x )
-{
-  return x + 1;
-}
-
 const double a = 0, b = 1;
 const size_t ITER = 10000;
 const char *phrases[] =
 {"Sorry, current version of program work only with n = 2.",
-"Please try again, n must be 2.",
-"It seems to me that you made a mistake with the key.",
-"Please read statement carefully and try again."};
+ "Please try again, n must be 2.",
+ "It seems to me that you made a mistake with the key.",
+ "Please read statement carefully and try again."};
 
 int main( void )
 {
   bool run = true;
   size_t n;
-  double moments[4], nodes[2], *coefficients = nullptr;
+  double moments[4], nodes[2];
   AcmFVals acm = Accumulate(Weight, ITER, a, b);
+  IQR Rule;
 
   moments[0] = QRMiddleRectangles(acm);
   for (size_t i = 1; i < 4; i++)
@@ -70,18 +66,17 @@ int main( void )
         std::cin >> nodes[0] >> nodes[1];
       } while (nodes[0] == nodes[1]);
 
-      if (coefficients != nullptr)
-        delete[] coefficients;
-      coefficients = GetIQRCoefficients(moments, nodes, n);
+      Rule = IQR(nodes, moments, n);
       acm = Accumulate([]( double x ){ return Weight(x) * Variant7(x); }, ITER, a, b);
+
       stats << fort::header << 'i' << "x_i" << "m_i" << "A_i" << fort::endr;
       for (size_t i = 0; i < n; i++)
-        stats << i << nodes[i] << moments[i] << coefficients[i] << fort::endr;
+        stats << i << nodes[i] << moments[i] << Rule.Coeffs[i] << fort::endr;
       std::cout << stats.to_string();
-      std::cout << "I_[ * ](" << WeightStr << '*' << Variant7Str << ", " << a << ", " << b  << ") = "
+      std::cout << "I_[ * ](" << WeightStr << '*' << FunctionsList[4].Expr << ", " << a << ", " << b  << ") = "
         << QRMiddleRectangles(acm) << '\n';
-      std::cout << "I_IQR(" << WeightStr << '*' << Variant7Str << ", " << a << ", " << b << ") = "
-        << IQR(Variant7, coefficients, nodes, n) << '\n';
+      std::cout << "I_IQR(" << WeightStr << '*' << FunctionsList[4].Expr << ", " << a << ", " << b << ") = "
+        << Rule.Integrate(Variant7) << '\n';
       break;
     }
     default:
