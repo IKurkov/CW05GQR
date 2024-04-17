@@ -99,7 +99,7 @@ int main( void )
       std::cout << "I_" << (key == '1' ? 'I' : 'G') << "QR("
         << WeightStr << " * [" << FunctionsList[FId].Expr << "], " << a << ", " << b << ") = "
         << std::setprecision(15) << I2 << '\n';
-      std::cout << "Delta: " << fabs(I1 - I2) << '\n';
+      std::cout << "Error = " << fabs(I1 - I2) << '\n';
     }
     else
       std::cout << "[Error]: Incorrect choice!\n";
